@@ -4,9 +4,9 @@
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-
-  // TODO: Uncomment the code below to pass the first stage
-  printf("$ ");
+  char input[1024] = "";
+  fgets(input, sizeof(char) * 1024, stdin);
+  printf("$ %s: command not found", input);
 
   return 0;
 }
