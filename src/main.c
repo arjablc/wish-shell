@@ -1,30 +1,47 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
+#define INPUT_SIZE 1024
 
-int main(int argc, char *argv[]) {
-  // Flush after every printf
-  setbuf(stdout, NULL);
-  while (1 == 1) {
-    printf("$ ");
-    char input[1024];
-    fgets(input, sizeof(char) * 1024, stdin);
-    if (input != NULL) {
-      input[strcspn(input, "\n")] = '\0';
-
-      if (strcmp(input, "exit") == 0) {
-        return 0;
-      }
-      char *commands = strtok(input, " ");
-      if (strcmp(commands, "echo") == 0) {
-        printf("%s", input + strlen(commands) + 1);
+static void handle_echo(const char *input) {
+    const char *msg = strchr(input, ' ');
+    if (msg != NULL) {
+        printf("%s\n", msg + 1);
+    } else {
         printf("\n");
-        continue;
-      }
-      printf("%s: command not found", input);
-      printf("\n");
     }
-  }
-  return 0;
+}
+
+int main(void) {
+    setbuf(stdout, NULL);
+
+    char input[INPUT_SIZE];
+
+    while (1) {
+        printf("$ ");
+
+        if (fgets(input, INPUT_SIZE, stdin) == NULL) {
+            break; /* EOF or error */
+        }
+
+        /* remove trailing newline */
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strcmp(input, "exit") == 0) {
+            break;
+        }
+
+        char *command = strtok(input, " ");
+        if (command == NULL) {
+            continue;
+        }
+
+        if (strcmp(command, "echo") == 0) {
+            handle_echo(input);
+        } else {
+            printf("%s: command not found\n", command);
+        }
+    }
+
+    return 0;
 }
