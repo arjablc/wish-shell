@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/knot/Devl/codecrafters-shell-c/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
