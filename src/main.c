@@ -2,24 +2,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-  while (1==1) {
-  printf("$ ");
-  char input[1024];
-  fgets(input, sizeof(char) * 1024, stdin);
-  if(input != NULL){
-    input[strcspn(input, "\n")] = '\0';
+  while (1 == 1) {
+    printf("$ ");
+    char input[1024];
+    fgets(input, sizeof(char) * 1024, stdin);
+    if (input != NULL) {
+      input[strcspn(input, "\n")] = '\0';
 
-    if (strcmp(input, "exit") == 0){
-      return 0;
+      if (strcmp(input, "exit") == 0) {
+        return 0;
+      }
+      char *commands = strtok(input, " ");
+      if (strcmp(commands, "echo") == 0) {
+        printf("%s", input + strlen(commands) + 1);
+        printf("\n");
+        continue;
+      }
+      printf("%s: command not found", input);
+      printf("\n");
     }
-
-
-    printf("%s: command not found", input);
-    printf("\n");
-  }
   }
   return 0;
 }
