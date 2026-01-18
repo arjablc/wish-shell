@@ -33,6 +33,7 @@ int main(void) {
     }
     if (strcmp(command, "echo") == 0) {
       printf("%s\n", input + strlen(command) + 1);
+      continue;
     }
     if (strcmp(command, "type") == 0) {
       char *cmd_args = input + strlen(command) + 1;
