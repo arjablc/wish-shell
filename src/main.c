@@ -3,7 +3,16 @@
 
 #define INPUT_SIZE 1024
 
-static void handle_echo(const char *input) {}
+int is_builtin(const char *command) {
+  static char *builtins[] = {"echo", "exit", "type"};
+  int builtins_len = sizeof(builtins) / sizeof(builtins[0]);
+  for (int i = 0; i < builtins_len; i++) {
+    if (strcmp(command, builtins[i]) == 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 int main(void) {
   setbuf(stdout, NULL);
@@ -22,12 +31,19 @@ int main(void) {
     if (command == NULL) {
       continue;
     }
-
     if (strcmp(command, "echo") == 0) {
       printf("%s\n", input + strlen(command) + 1);
-    } else {
-      printf("%s: command not found\n", command);
     }
+    if (strcmp(command, "type") == 0) {
+      char *cmd_args = input + strlen(command) + 1;
+      if (is_builtin(cmd_args)) {
+        printf("%s is a shell builtin\n", cmd_args);
+      } else {
+        printf("%s: not found\n", cmd_args);
+      }
+      continue;
+    }
+    printf("%s: command not found\n", command);
   }
 
   return 0;
