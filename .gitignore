@@ -6,10 +6,11 @@
 *.ko
 *.obj
 *.elf
+AGENT.md
+AGENTS.md
 
 # Linker output
-*.ilk
-*.map
+*.ilk *.map
 *.exp
 
 # Precompiled Headers

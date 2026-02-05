@@ -1,3 +1,14 @@
+
+TODO: 
+refactor
+    - [ ] tokenizer
+    - [ ] registery
+    - [ ] parser
+    - [ ] dispatcher
+    - [ ] handlers
+    - [ ] utils
+
+
 [![progress-banner](https://backend.codecrafters.io/progress/shell/9ce63d9b-77a1-492a-8652-f29ac77d88e6)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
 This is a starting point for C solutions to the
