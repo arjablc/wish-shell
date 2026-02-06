@@ -52,7 +52,7 @@ int handle_pwd(ArgV *argv) {
     perror("getcwd");
     return 0;
   }
-  printf("%s",buff);
+  printf("%s\n",buff);
   return 1;
 }
 
