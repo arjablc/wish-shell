@@ -26,7 +26,7 @@ BuiltinEntry builtins[] = {{"echo", handle_echo, 0},
                            {"type", handle_type, 0},
                            {"pwd", handle_pwd, 0},
 };
-int builtin_len = 3;
+int builtin_len = 4;
 
 BuiltinEntry *lookup(const char *command) {
   for (int i = 0; i < builtin_len; i++) {
