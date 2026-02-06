@@ -58,11 +58,9 @@ int handle_pwd(ArgV *argv) {
 
 int handle_cd(ArgV *argv) {
   char *path = argv->argv[1];
-  if (chdir(path) == -1) {
-    if (errno == ENONET) {
-      printf("cd: %s: No such file or directory", path);
-    } 
-    return 0;
+  chdir(path);
+  if (errno == ENOENT) {
+    printf("cd: %s: No such file or directory\n", path);
   }
   return 1;
 }
