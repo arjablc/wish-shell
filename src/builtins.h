@@ -1,9 +1,13 @@
 
 #include "tokenizer.h"
 
-// 1 or 0
-int is_builtin(const char *command);
+typedef struct BuiltinEntry{
+  const char *name;
+  int (*fpptr)(ArgV *argv);
+  int flag;
+} BuiltinEntry;
 
 // 1 for success
+// 0 for not running
 // -1 error
-int hanlde_builtin(ArgV* argv);
+int hanlde_builtins(ArgV* argv);

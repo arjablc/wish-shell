@@ -1,4 +1,5 @@
 
+#include "builtins.h"
 #include "tokenizer.h"
 #include <dirent.h>
 #include <stdio.h>
@@ -13,45 +14,52 @@
 #define PATH_LIST_SEPARATOR ":"
 #endif
 
-void handle_type(char **argv);
+int handle_type(ArgV *argv);
+int handle_echo(ArgV *argv);
+int handle_exit(ArgV *argv);
 
-int is_builtin(const char *command) {
-  static char *builtins[] = {"echo", "exit", "type"};
-  int builtins_len = sizeof(builtins) / sizeof(builtins[0]);
-  for (int i = 0; i < builtins_len; i++) {
-    if (strcmp(command, builtins[i]) == 0) {
-      return 1;
+BuiltinEntry builtins[] = {{"echo", handle_echo, 0},
+                           {"exit", handle_exit, 0},
+                           {"type", handle_type, 0}};
+int builtin_len = 3;
+
+BuiltinEntry *lookup(const char *command) {
+  for (int i = 0; i < builtin_len; i++) {
+    if (command && strcmp(command, builtins[i].name) == 0) {
+      return &builtins[i];
     }
   }
-  return 0;
+  return NULL;
 }
 
-int hanlde_builtin(ArgV *argv) {
-  char *command = argv->argv[0];
-  if (strcmp(command, "exit") == 0) {
-    exit(0);
+int hanlde_builtins(ArgV *argv) {
+  BuiltinEntry *entry = lookup(argv->argv[0]);
+  if (entry == NULL) {
+    return 0;
   }
-  if (strcmp(command, "echo") == 0) {
-    for (int i = 1; i < argv->argc; i++) {
-      if (i > 1)
-        putchar(' ');
-      fputs(argv->argv[i], stdout);
-    }
-    putchar('\n');
-    return 1;
-  }
-  if (strcmp(command, "type") == 0) {
-    handle_type(argv->argv);
-    return 1;
-  }
-  return -1;
+  return entry->fpptr(argv);
 }
 
-void handle_type(char **argv) {
-  char *type_arg = argv[1];
-  if (is_builtin(type_arg) == 1) {
+int handle_exit(ArgV *argv) {
+  (void)argv;
+  exit(0);
+}
+
+int handle_echo(ArgV *argv) {
+  for (int i = 1; i < argv->argc; i++) {
+    if (i > 1)
+      putchar(' ');
+    fputs(argv->argv[i], stdout);
+  }
+  putchar('\n');
+  return 1;
+}
+
+int handle_type(ArgV *argv) {
+  char *type_arg = argv->argv[1];
+  if (lookup(type_arg) != NULL) {
     printf("%s is a shell builtin\n", type_arg);
-    return;
+    return 1;
 
   } else {
     int ex_found = 0;
@@ -100,11 +108,12 @@ void handle_type(char **argv) {
       }
       if (ex_found) {
         closedir(dir);
-        return;
+        return 1;
       }
       path = strtok(NULL, PATH_LIST_SEPARATOR);
     }
     free(path_copy);
   }
   printf("%s: not found\n", type_arg);
+  return 1;
 }

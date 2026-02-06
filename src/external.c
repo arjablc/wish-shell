@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-int exec_external(ArgV *argv) {
+int handle_external(ArgV *argv) {
   // fork
   int pid = fork();
   int child_status;

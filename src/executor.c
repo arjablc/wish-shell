@@ -3,11 +3,9 @@
 #include "tokenizer.h"
 
 int execute(ArgV *argv) {
-  char *command = argv->argv[0];
-  if (is_builtin(command)) {
-    hanlde_builtin(argv);
-    return 0;
+  int builtins_res = hanlde_builtins(argv);
+  if (builtins_res == 0){
+    handle_external(argv);
   }
-  exec_external(argv);
   return 0;
 }
