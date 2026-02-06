@@ -1,9 +1,9 @@
 
 #include "builtins.h"
 #include "tokenizer.h"
-#include <limits.h>
 #include <dirent.h>
-#include <linux/limits.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,13 +20,14 @@ int handle_type(ArgV *argv);
 int handle_echo(ArgV *argv);
 int handle_exit(ArgV *argv);
 int handle_pwd(ArgV *argv);
+int handle_cd(ArgV *argv);
 
-BuiltinEntry builtins[] = {{"echo", handle_echo, 0},
-                           {"exit", handle_exit, 0},
-                           {"type", handle_type, 0},
-                           {"pwd", handle_pwd, 0},
+BuiltinEntry builtins[] = {
+    {"echo", handle_echo, 0}, {"exit", handle_exit, 0},
+    {"type", handle_type, 0}, {"pwd", handle_pwd, 0},
+    {"cd", handle_cd, 0},
 };
-int builtin_len = 4;
+int builtin_len = 5;
 
 BuiltinEntry *lookup(const char *command) {
   for (int i = 0; i < builtin_len; i++) {
@@ -45,14 +46,24 @@ int hanlde_builtins(ArgV *argv) {
   return entry->fpptr(argv);
 }
 
-
 int handle_pwd(ArgV *argv) {
   char buff[PATH_MAX];
-  if(getcwd(buff, sizeof(buff)) == NULL){
+  if (getcwd(buff, sizeof(buff)) == NULL) {
     perror("getcwd");
     return 0;
   }
-  printf("%s\n",buff);
+  printf("%s\n", buff);
+  return 1;
+}
+
+int handle_cd(ArgV *argv) {
+  char *path = argv->argv[1];
+  if (chdir(path) == -1) {
+    if (errno == ENONET) {
+      printf("cd: %s: No such file or directory", path);
+    } 
+    return 0;
+  }
   return 1;
 }
 
