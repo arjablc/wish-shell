@@ -1,7 +1,9 @@
 
 #include "builtins.h"
 #include "tokenizer.h"
+#include <limits.h>
 #include <dirent.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,10 +19,13 @@
 int handle_type(ArgV *argv);
 int handle_echo(ArgV *argv);
 int handle_exit(ArgV *argv);
+int handle_pwd(ArgV *argv);
 
 BuiltinEntry builtins[] = {{"echo", handle_echo, 0},
                            {"exit", handle_exit, 0},
-                           {"type", handle_type, 0}};
+                           {"type", handle_type, 0},
+                           {"pwd", handle_pwd, 0},
+};
 int builtin_len = 3;
 
 BuiltinEntry *lookup(const char *command) {
@@ -38,6 +43,17 @@ int hanlde_builtins(ArgV *argv) {
     return 0;
   }
   return entry->fpptr(argv);
+}
+
+
+int handle_pwd(ArgV *argv) {
+  char buff[PATH_MAX];
+  if(getcwd(buff, sizeof(buff)) == NULL){
+    perror("getcwd");
+    return 0;
+  }
+  printf("%s",buff);
+  return 1;
 }
 
 int handle_exit(ArgV *argv) {
