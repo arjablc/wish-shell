@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,8 @@
 #else
 #define PATH_LIST_SEPARATOR ":"
 #endif
+
+bool change_directory(char *path);
 
 int handle_type(ArgV *argv);
 int handle_echo(ArgV *argv);
@@ -58,11 +61,29 @@ int handle_pwd(ArgV *argv) {
 
 int handle_cd(ArgV *argv) {
   char *path = argv->argv[1];
-  chdir(path);
-  if (errno == ENOENT) {
+  if (!change_directory(path)) {
     printf("cd: %s: No such file or directory\n", path);
   }
   return 1;
+}
+
+bool change_directory(char *path) {
+  if (path[0] == '~') {
+    if (chdir(getenv("HOME")) == 0) {
+      return true;
+    }
+    return false;
+  }
+
+  if (access(path, F_OK) != 0) {
+    return false;
+  }
+
+  if (chdir(path) == 0) {
+    return true;
+  }
+
+  return false;
 }
 
 int handle_exit(ArgV *argv) {
