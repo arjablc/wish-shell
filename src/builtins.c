@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +61,9 @@ int handle_pwd(ArgV *argv) {
 }
 
 int handle_cd(ArgV *argv) {
+  if (argv->argv[1] == NULL) {
+    argv->argv[1] = "~";
+  }
   char *path = argv->argv[1];
   if (!change_directory(path)) {
     printf("cd: %s: No such file or directory\n", path);
@@ -69,21 +73,19 @@ int handle_cd(ArgV *argv) {
 
 bool change_directory(char *path) {
   if (path[0] == '~') {
-    if (chdir(getenv("HOME")) == 0) {
+    // here e_path is a pointer
+    char *home = getenv("HOME");
+    char e_path[PATH_MAX];
+    strcpy(e_path, home);
+    // doing strcat on the buffer returned by get env
+    // will change the buffer pointer and
+    // subsequently it would change the HOME environment variable too
+    strcat(e_path, (path + 1));
+    if (chdir(e_path) == 0) {
       return true;
     }
-    return false;
   }
-
-  if (access(path, F_OK) != 0) {
-    return false;
-  }
-
-  if (chdir(path) == 0) {
-    return true;
-  }
-
-  return false;
+  return chdir(path) == 0;
 }
 
 int handle_exit(ArgV *argv) {
