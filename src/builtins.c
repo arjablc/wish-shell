@@ -43,7 +43,7 @@ BuiltinEntry *lookup(const char *command) {
 }
 
 int hanlde_builtins(ArgV *argv) {
-  BuiltinEntry *entry = lookup(argv->argv[0]);
+  BuiltinEntry *entry = lookup(argv->args[0]);
   if (entry == NULL) {
     return 0;
   }
@@ -61,10 +61,10 @@ int handle_pwd(ArgV *argv) {
 }
 
 int handle_cd(ArgV *argv) {
-  if (argv->argv[1] == NULL) {
-    argv->argv[1] = "~";
+  if (argv->args[1] == NULL) {
+    argv->args[1] = "~";
   }
-  char *path = argv->argv[1];
+  char *path = argv->args[1];
   if (!change_directory(path)) {
     printf("cd: %s: No such file or directory\n", path);
   }
@@ -97,14 +97,14 @@ int handle_echo(ArgV *argv) {
   for (int i = 1; i < argv->argc; i++) {
     if (i > 1)
       putchar(' ');
-    fputs(argv->argv[i], stdout);
+    fputs(argv->args[i], stdout);
   }
   putchar('\n');
   return 1;
 }
 
 int handle_type(ArgV *argv) {
-  char *type_arg = argv->argv[1];
+  char *type_arg = argv->args[1];
   if (lookup(type_arg) != NULL) {
     printf("%s is a shell builtin\n", type_arg);
     return 1;

@@ -25,8 +25,7 @@ int main(void) {
       exit(-1);
     }
     execute(argv);
-    free(argv->argv);
-    free(argv);
+    free_argv(argv);
   }
   return 0;
 }

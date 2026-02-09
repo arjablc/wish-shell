@@ -14,9 +14,9 @@ int handle_external(ArgV *argv) {
     perror("Fork error");
     return -1;
   } else if (pid == 0){
-    execvp(argv->argv[0],argv->argv );
+    execvp(argv->args[0],argv->args );
     if (errno == ENOENT){
-      printf("%s: command not found\n", argv->argv[0]);
+      printf("%s: command not found\n", argv->args[0]);
     }
     // this is a lower level exit that doesn't use the atExit from the parent process
     _exit(127);
