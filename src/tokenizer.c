@@ -144,11 +144,6 @@ int tokenize(ArgV *argv, char *input) {
   for (int i = 0; i <= i_len; i++) {
     char c = input[i];
     CharType charType = get_char_type(c);
-    if(charType == ESC){
-        str_buff_push(str_buff, input[i+1]);
-        i++;
-        continue;
-    }
     if (state == SPACE) {
       if (c == '\0') {
         break;
@@ -159,6 +154,11 @@ int tokenize(ArgV *argv, char *input) {
         break;
       case SQ:
         state = S_QUOTE;
+        break;
+      case ESC:
+        str_buff_push(str_buff, input[i+1]);
+        i++;
+        continue;
         break;
       case DQ:
         state = D_QUOTE;
