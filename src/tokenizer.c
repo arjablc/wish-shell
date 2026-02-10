@@ -195,6 +195,7 @@ int tokenize(ArgV *argv, char *input) {
     return 1;
   }
   emit_token_if_any(str_buff, argv);
+  argv->args[argv->argc] = NULL;
 
   // for (size_t i = 0; i < argv->argc; i++) {
   //   puts(argv->args[i]);
