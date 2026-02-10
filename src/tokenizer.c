@@ -196,9 +196,9 @@ int tokenize(ArgV *argv, char *input) {
   }
   emit_token_if_any(str_buff, argv);
 
-  for (size_t i = 0; i < argv->argc; i++) {
-    puts(argv->args[i]);
-  }
+  // for (size_t i = 0; i < argv->argc; i++) {
+  //   puts(argv->args[i]);
+  // }
 
   free_str_buff(str_buff);
   return 0;
