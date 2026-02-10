@@ -46,6 +46,10 @@ CharType get_char_type(char c) {
     return SQ;
   case '\"':
     return DQ;
+  case '\0':
+    return END;
+  case '\\':
+    return ESC;
   default:
     return OTHERS;
   }
@@ -59,6 +63,8 @@ char get_delim(TokenizerState state) {
     return '\'';
   case D_QUOTE:
     return '"';
+  case ESCAPE:
+    return '\\';
   }
   return '\0';
 }
@@ -137,11 +143,17 @@ int tokenize(ArgV *argv, char *input) {
   StringBuffer *str_buff = new_str_buff();
   for (int i = 0; i <= i_len; i++) {
     char c = input[i];
+    CharType charType = get_char_type(c);
+    if(charType == ESC){
+        str_buff_push(str_buff, input[i+1]);
+        i++;
+        continue;
+    }
     if (state == SPACE) {
       if (c == '\0') {
         break;
       }
-      switch (get_char_type(c)) {
+      switch (charType) {
       case SPC:
         emit_token_if_any(str_buff, argv);
         break;
@@ -183,6 +195,11 @@ int tokenize(ArgV *argv, char *input) {
     return 1;
   }
   emit_token_if_any(str_buff, argv);
+
+  for (size_t i = 0; i < argv->argc; i++) {
+    puts(argv->args[i]);
+  }
+
   free_str_buff(str_buff);
   return 0;
 }

@@ -5,13 +5,17 @@ typedef enum TokenizerState {
   SPACE,
   S_QUOTE,
   D_QUOTE,
+  ESCAPE
 } TokenizerState;
 
 typedef enum CharType {
   SPC,
   SQ,
   DQ,
+  ESC,
+  END,
   OTHERS
+  
 } CharType;
 
 char get_delim(TokenizerState state);
