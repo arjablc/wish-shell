@@ -156,7 +156,7 @@ int tokenize(ArgV *argv, char *input) {
         state = S_QUOTE;
         break;
       case ESC:
-        str_buff_push(str_buff, input[i+1]);
+        str_buff_push(str_buff, input[i + 1]);
         i++;
         continue;
         break;
@@ -178,6 +178,14 @@ int tokenize(ArgV *argv, char *input) {
         str_buff_push(str_buff, c);
       }
     } else {
+      if (c == '\\') {
+        char next = input[i + 1];
+        if (next == '\\' || next == '"') {
+          str_buff_push(str_buff, input[i + 1]);
+          i++;
+          continue;
+        }
+      }
       if (c == '\0') {
         free_str_buff(str_buff);
         return 1;
