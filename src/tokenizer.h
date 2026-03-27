@@ -1,5 +1,12 @@
-#include <stddef.h>
 #pragma once
+
+#include "command.h"
+
+typedef enum {
+  TOKENIZE_ERROR = -1,
+  TOKENIZE_OK = 0,
+  TOKENIZE_INCOMPLETE = 1,
+} TokenizeResult;
 
 typedef enum TokenizerState {
   SPACE,
@@ -15,18 +22,9 @@ typedef enum CharType {
   ESC,
   END,
   OTHERS
-  
 } CharType;
 
-char get_delim(TokenizerState state);
 CharType get_char_type(char c);
-
-// Just a dynamic array implementation for now
-typedef struct {
-  char **args;
-  int argc;
-  int cap;
-} ArgV;
 
 typedef struct{
   char *str;
@@ -38,7 +36,4 @@ StringBuffer *new_str_buff();
 void str_buff_push(StringBuffer * buff,char c);
 void clr_str_buff(StringBuffer * buff);
 void free_str_buff(StringBuffer * buff);
-int tokenize(ArgV *argv, char *input);
-void push_argv(ArgV *argv, char *elem);
-void free_argv(ArgV *argv);
-ArgV *new_argv();
+TokenizeResult tokenize(Command *cmd, const char *input);

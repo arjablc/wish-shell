@@ -1,4 +1,10 @@
-#include "tokenizer.h"
+#pragma once
 
-//decides which one to use builtin or execvp
-int execute(ArgV *argv);
+#include "command.h"
+
+typedef enum {
+  EXECUTE_ERROR = -1,
+  EXECUTE_OK = 0,
+} ExecuteResult;
+
+ExecuteResult execute(Command *cmd);

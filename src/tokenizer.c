@@ -1,41 +1,19 @@
 #include "tokenizer.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-ArgV *new_argv() {
-  ArgV *ptr = malloc(sizeof(ArgV));
-  if (ptr == NULL) {
-    perror("malloc");
-    exit(1);
-  }
-  ptr->argc = 0;
-  ptr->cap = 8;
-  ptr->args = malloc(sizeof(char *) * ptr->cap);
-  if (ptr->args == NULL) {
+static char *copy_buffer(const StringBuffer *str_buff) {
+  char *token = malloc((size_t)str_buff->len);
+  if (token == NULL) {
     perror("malloc");
     exit(1);
   }
 
-  return ptr;
-}
-void free_argv(ArgV *argv) {
-  free(argv->args);
-  free(argv);
-}
-
-void push_argv(ArgV *argv, char *elem) {
-  if (argv->argc + 1 >= argv->cap) {
-    argv->cap = argv->cap * 2;
-    char **temp = realloc(argv->args, argv->cap * sizeof(char *));
-    if (temp == NULL) {
-      perror("Realloc tok array");
-      exit(1);
-    }
-    argv->args = temp;
-  }
-  argv->args[argv->argc++] = elem;
+  memcpy(token, str_buff->str, (size_t)str_buff->len);
+  return token;
 }
 
 CharType get_char_type(char c) {
@@ -53,20 +31,6 @@ CharType get_char_type(char c) {
   default:
     return OTHERS;
   }
-}
-
-char get_delim(TokenizerState state) {
-  switch (state) {
-  case SPACE:
-    return ' ';
-  case S_QUOTE:
-    return '\'';
-  case D_QUOTE:
-    return '"';
-  case ESCAPE:
-    return '\\';
-  }
-  return '\0';
 }
 
 StringBuffer *new_str_buff() {
@@ -108,37 +72,30 @@ void str_buff_push(StringBuffer *buff, char c) {
   if (buff->len + 1 >= buff->cap) {
     buff->cap = buff->cap * 2;
     char *temp = realloc(buff->str, buff->cap * sizeof(char));
-    buff->str = temp;
-    if (buff->str == NULL) {
+    if (temp == NULL) {
       perror("Realloc tok array");
       exit(1);
     }
+    buff->str = temp;
   }
   buff->str[buff->len++] = (char)c;
 }
 
-bool emit_token_if_any(StringBuffer *str_buff, ArgV *argv) {
+static bool emit_token_if_any(StringBuffer *str_buff, Command *cmd) {
   if (str_buff->len == 0) {
     return false;
   }
   str_buff_push(str_buff, '\0');
-  char *token = malloc((strlen(str_buff->str) + 1) * sizeof(char));
-  if (token == NULL) {
-    perror("malloc");
-    exit(1);
-  }
-  strcpy(token, str_buff->str);
-  push_argv(argv, token);
+  command_push_arg(cmd, copy_buffer(str_buff));
   clr_str_buff(str_buff);
   return true;
 }
 
-// -1 error, 0 success, 1 complete but failed
-int tokenize(ArgV *argv, char *input) {
+TokenizeResult tokenize(Command *cmd, const char *input) {
   if (input == NULL) {
-    return -1;
+    return TOKENIZE_ERROR;
   }
-  int i_len = strlen(input);
+  int i_len = (int)strlen(input);
   TokenizerState state = SPACE;
   StringBuffer *str_buff = new_str_buff();
   for (int i = 0; i <= i_len; i++) {
@@ -150,7 +107,7 @@ int tokenize(ArgV *argv, char *input) {
       }
       switch (charType) {
       case SPC:
-        emit_token_if_any(str_buff, argv);
+        emit_token_if_any(str_buff, cmd);
         break;
       case SQ:
         state = S_QUOTE;
@@ -170,7 +127,7 @@ int tokenize(ArgV *argv, char *input) {
     } else if (state == S_QUOTE) {
       if (c == '\0') {
         free_str_buff(str_buff);
-        return 1;
+        return TOKENIZE_INCOMPLETE;
       }
       if (c == '\'') {
         state = SPACE;
@@ -188,7 +145,7 @@ int tokenize(ArgV *argv, char *input) {
       }
       if (c == '\0') {
         free_str_buff(str_buff);
-        return 1;
+        return TOKENIZE_INCOMPLETE;
       }
       if (c == '"') {
         state = SPACE;
@@ -200,15 +157,10 @@ int tokenize(ArgV *argv, char *input) {
 
   if (state != SPACE) {
     free_str_buff(str_buff);
-    return 1;
+    return TOKENIZE_INCOMPLETE;
   }
-  emit_token_if_any(str_buff, argv);
-  argv->args[argv->argc] = NULL;
-
-  // for (size_t i = 0; i < argv->argc; i++) {
-  //   puts(argv->args[i]);
-  // }
+  emit_token_if_any(str_buff, cmd);
 
   free_str_buff(str_buff);
-  return 0;
+  return TOKENIZE_OK;
 }

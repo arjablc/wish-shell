@@ -1,0 +1,3 @@
+/home/knot/Devl/codecrafters/codecrafters-shell-c/build-opencode/CMakeFiles/shell.dir
+/home/knot/Devl/codecrafters/codecrafters-shell-c/build-opencode/CMakeFiles/edit_cache.dir
+/home/knot/Devl/codecrafters/codecrafters-shell-c/build-opencode/CMakeFiles/rebuild_cache.dir

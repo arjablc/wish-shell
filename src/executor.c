@@ -1,11 +1,20 @@
+#include "executor.h"
 #include "builtins.h"
 #include "external.h"
-#include "tokenizer.h"
 
-int execute(ArgV *argv) {
-  int builtins_res = hanlde_builtins(argv);
-  if (builtins_res == 0){
-    handle_external(argv);
+ExecuteResult execute(Command *cmd) {
+  if (command_is_empty(cmd)) {
+    return EXECUTE_OK;
   }
-  return 0;
+
+  BuiltinResult builtin_result = handle_builtins(cmd);
+  if (builtin_result == BUILTIN_ERROR) {
+    return EXECUTE_ERROR;
+  }
+
+  if (builtin_result == BUILTIN_NOT_HANDLED) {
+    return handle_external(cmd) == 0 ? EXECUTE_OK : EXECUTE_ERROR;
+  }
+
+  return EXECUTE_OK;
 }

@@ -1,39 +1,35 @@
-
 #include "builtins.h"
-#include "tokenizer.h"
-#include <dirent.h>
-#include <errno.h>
-#include <limits.h>
+#include "shell_path.h"
+
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
-#ifdef _WIN32
-#define PATH_LIST_SEPARATOR ";"
-#else
-#define PATH_LIST_SEPARATOR ":"
+#ifndef PATH_MAX
+#define PATH_MAX 4096
 #endif
 
-bool change_directory(char *path);
+static bool change_directory(const char *path);
+static BuiltinEntry *lookup_builtin(const char *command);
+static const char *cd_target(const Command *cmd);
 
-int handle_type(ArgV *argv);
-int handle_echo(ArgV *argv);
-int handle_exit(ArgV *argv);
-int handle_pwd(ArgV *argv);
-int handle_cd(ArgV *argv);
+static int handle_type(Command *cmd);
+static int handle_echo(Command *cmd);
+static int handle_exit(Command *cmd);
+static int handle_pwd(Command *cmd);
+static int handle_cd(Command *cmd);
 
-BuiltinEntry builtins[] = {
+static BuiltinEntry builtins[] = {
     {"echo", handle_echo, 0}, {"exit", handle_exit, 0},
     {"type", handle_type, 0}, {"pwd", handle_pwd, 0},
     {"cd", handle_cd, 0},
 };
-int builtin_len = 5;
+static const int builtin_len = 5;
 
-BuiltinEntry *lookup(const char *command) {
+static BuiltinEntry *lookup_builtin(const char *command) {
   for (int i = 0; i < builtin_len; i++) {
     if (command && strcmp(command, builtins[i].name) == 0) {
       return &builtins[i];
@@ -42,45 +38,55 @@ BuiltinEntry *lookup(const char *command) {
   return NULL;
 }
 
-int hanlde_builtins(ArgV *argv) {
-  BuiltinEntry *entry = lookup(argv->args[0]);
-  if (entry == NULL) {
-    return 0;
+BuiltinResult handle_builtins(Command *cmd) {
+  if (command_is_empty(cmd)) {
+    return BUILTIN_NOT_HANDLED;
   }
-  return entry->fpptr(argv);
+
+  BuiltinEntry *entry = lookup_builtin(cmd->args[0]);
+  if (entry == NULL) {
+    return BUILTIN_NOT_HANDLED;
+  }
+
+  return entry->fpptr(cmd);
 }
 
-int handle_pwd(ArgV *argv) {
+static int handle_pwd(Command *cmd) {
+  (void)cmd;
   char buff[PATH_MAX];
   if (getcwd(buff, sizeof(buff)) == NULL) {
     perror("getcwd");
-    return 0;
+    return BUILTIN_ERROR;
   }
   printf("%s\n", buff);
-  return 1;
+  return BUILTIN_HANDLED;
 }
 
-int handle_cd(ArgV *argv) {
-  if (argv->args[1] == NULL) {
-    argv->args[1] = "~";
-  }
-  char *path = argv->args[1];
+static int handle_cd(Command *cmd) {
+  const char *path = cd_target(cmd);
   if (!change_directory(path)) {
     printf("cd: %s: No such file or directory\n", path);
   }
-  return 1;
+  return BUILTIN_HANDLED;
 }
 
-bool change_directory(char *path) {
+static const char *cd_target(const Command *cmd) {
+  if (cmd->argc < 2 || cmd->args[1] == NULL) {
+    return "~";
+  }
+
+  return cmd->args[1];
+}
+
+static bool change_directory(const char *path) {
   if (path[0] == '~') {
-    // here e_path is a pointer
     char *home = getenv("HOME");
+    if (home == NULL) {
+      return false;
+    }
+
     char e_path[PATH_MAX];
-    strcpy(e_path, home);
-    // doing strcat on the buffer returned by get env
-    // will change the buffer pointer and
-    // subsequently it would change the HOME environment variable too
-    strcat(e_path, (path + 1));
+    snprintf(e_path, sizeof(e_path), "%s%s", home, path + 1);
     if (chdir(e_path) == 0) {
       return true;
     }
@@ -88,80 +94,40 @@ bool change_directory(char *path) {
   return chdir(path) == 0;
 }
 
-int handle_exit(ArgV *argv) {
-  (void)argv;
+static int handle_exit(Command *cmd) {
+  (void)cmd;
   exit(0);
 }
 
-int handle_echo(ArgV *argv) {
-  for (int i = 1; i < argv->argc; i++) {
+static int handle_echo(Command *cmd) {
+  for (int i = 1; i < cmd->argc; i++) {
     if (i > 1)
       putchar(' ');
-    fputs(argv->args[i], stdout);
+    fputs(cmd->args[i], stdout);
   }
   putchar('\n');
-  return 1;
+  return BUILTIN_HANDLED;
 }
 
-int handle_type(ArgV *argv) {
-  char *type_arg = argv->args[1];
-  if (lookup(type_arg) != NULL) {
-    printf("%s is a shell builtin\n", type_arg);
-    return 1;
-
-  } else {
-    int ex_found = 0;
-    char *path_variables = getenv("PATH");
-    // copy the path variables because they are owned by os
-    char *path_copy = strdup(path_variables);
-    // strtok takes a pointer to the start of a string, returns the pointer to
-    // the first token then if we call strtok on again with NULL it will start
-    // from the last saved pointer after the delimeter
-    // NOTE: since strtok uses internal static variable to keep track of the
-    // last pointer
-    // it shouldn't be used in real world
-    char *path = strtok(path_copy, PATH_LIST_SEPARATOR);
-    // working with directories  in c
-    // using dirent header(posix complient)
-    DIR *dir;
-    while (path != NULL) {
-      dir = opendir(path);
-      struct dirent *entry;
-      if (dir == NULL) {
-        path = strtok(NULL, PATH_LIST_SEPARATOR);
-        continue;
-      }
-
-      while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
-          continue;
-        }
-        // check if same
-        if (strcmp(type_arg, entry->d_name) == 0) {
-          // build the full path of the file
-          char file_path[1024];
-          snprintf(file_path, sizeof(file_path), "%s/%s", path, entry->d_name);
-          // check if the file is executable and user has access to it
-          if (access(file_path, X_OK) == 0) {
-            // check if the file is a file and not a directory
-            struct stat file_stat;
-            stat(file_path, &file_stat);
-            if (S_ISREG(file_stat.st_mode)) {
-              printf("%s is %s\n", type_arg, file_path);
-              ex_found = 1;
-            }
-          }
-        }
-      }
-      if (ex_found) {
-        closedir(dir);
-        return 1;
-      }
-      path = strtok(NULL, PATH_LIST_SEPARATOR);
-    }
-    free(path_copy);
+static int handle_type(Command *cmd) {
+  if (cmd->argc < 2 || cmd->args[1] == NULL) {
+    printf(": not found\n");
+    return BUILTIN_HANDLED;
   }
+
+  char *type_arg = cmd->args[1];
+  if (lookup_builtin(type_arg) != NULL) {
+    printf("%s is a shell builtin\n", type_arg);
+    return BUILTIN_HANDLED;
+  }
+
+  char *path = find_executable_in_path(type_arg);
+  if (path != NULL) {
+    printf("%s is %s\n", type_arg, path);
+    free(path);
+    return BUILTIN_HANDLED;
+  }
+
   printf("%s: not found\n", type_arg);
-  return 1;
+  return BUILTIN_HANDLED;
 }

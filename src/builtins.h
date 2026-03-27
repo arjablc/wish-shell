@@ -1,13 +1,17 @@
+#pragma once
 
-#include "tokenizer.h"
+#include "command.h"
+
+typedef enum {
+  BUILTIN_ERROR = -1,
+  BUILTIN_NOT_HANDLED = 0,
+  BUILTIN_HANDLED = 1,
+} BuiltinResult;
 
 typedef struct BuiltinEntry{
   const char *name;
-  int (*fpptr)(ArgV *argv);
+  int (*fpptr)(Command *cmd);
   int flag;
 } BuiltinEntry;
 
-// 1 for success
-// 0 for not running
-// -1 error
-int hanlde_builtins(ArgV* argv);
+BuiltinResult handle_builtins(Command *cmd);
