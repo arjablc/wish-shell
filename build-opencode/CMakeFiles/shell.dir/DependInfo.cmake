@@ -13,6 +13,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/executor.c" "CMakeFiles/shell.dir/src/executor.c.o" "gcc" "CMakeFiles/shell.dir/src/executor.c.o.d"
   "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/external.c" "CMakeFiles/shell.dir/src/external.c.o" "gcc" "CMakeFiles/shell.dir/src/external.c.o.d"
   "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/main.c" "CMakeFiles/shell.dir/src/main.c.o" "gcc" "CMakeFiles/shell.dir/src/main.c.o.d"
+  "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/redirection.c" "CMakeFiles/shell.dir/src/redirection.c.o" "gcc" "CMakeFiles/shell.dir/src/redirection.c.o.d"
   "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/shell_path.c" "CMakeFiles/shell.dir/src/shell_path.c.o" "gcc" "CMakeFiles/shell.dir/src/shell_path.c.o.d"
   "/home/knot/Devl/codecrafters/codecrafters-shell-c/src/tokenizer.c" "CMakeFiles/shell.dir/src/tokenizer.c.o" "gcc" "CMakeFiles/shell.dir/src/tokenizer.c.o.d"
   "" "shell" "gcc" "CMakeFiles/shell.dir/link.d"

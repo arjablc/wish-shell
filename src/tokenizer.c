@@ -91,6 +91,44 @@ static bool emit_token_if_any(StringBuffer *str_buff, Command *cmd) {
   return true;
 }
 
+static void push_redirection_token(Command *cmd, const char *token) {
+  size_t len = strlen(token) + 2;
+  char *copy = malloc(len);
+  if (copy == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+
+  copy[0] = '\x1f';
+  memcpy(copy + 1, token, len - 1);
+  command_push_arg(cmd, copy);
+}
+
+static bool emit_redirection_token(const char *input, int *index, StringBuffer *str_buff,
+                                   Command *cmd) {
+  char c = input[*index];
+  char token[4] = {0};
+  int pos = 0;
+
+  if ((c == '1' || c == '2') && input[*index + 1] == '>') {
+    token[pos++] = c;
+    (*index)++;
+    c = input[*index];
+  } else if (c != '>') {
+    return false;
+  }
+
+  token[pos++] = c;
+  if (input[*index + 1] == '>') {
+    token[pos++] = '>';
+    (*index)++;
+  }
+
+  emit_token_if_any(str_buff, cmd);
+  push_redirection_token(cmd, token);
+  return true;
+}
+
 TokenizeResult tokenize(Command *cmd, const char *input) {
   if (input == NULL) {
     return TOKENIZE_ERROR;
@@ -104,6 +142,9 @@ TokenizeResult tokenize(Command *cmd, const char *input) {
     if (state == SPACE) {
       if (c == '\0') {
         break;
+      }
+      if (emit_redirection_token(input, &i, str_buff, cmd)) {
+        continue;
       }
       switch (charType) {
       case SPC:
@@ -160,6 +201,10 @@ TokenizeResult tokenize(Command *cmd, const char *input) {
     return TOKENIZE_INCOMPLETE;
   }
   emit_token_if_any(str_buff, cmd);
+  if (!command_extract_redirs(cmd)) {
+    free_str_buff(str_buff);
+    return TOKENIZE_ERROR;
+  }
 
   free_str_buff(str_buff);
   return TOKENIZE_OK;

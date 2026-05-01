@@ -10,6 +10,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/shell.dir/src/external.c.o.d"
   "CMakeFiles/shell.dir/src/main.c.o"
   "CMakeFiles/shell.dir/src/main.c.o.d"
+  "CMakeFiles/shell.dir/src/redirection.c.o"
+  "CMakeFiles/shell.dir/src/redirection.c.o.d"
   "CMakeFiles/shell.dir/src/shell_path.c.o"
   "CMakeFiles/shell.dir/src/shell_path.c.o.d"
   "CMakeFiles/shell.dir/src/tokenizer.c.o"
